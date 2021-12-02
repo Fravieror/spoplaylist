@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/karlseguin/ccache/v2"
-	"github.com/zmb3/spotify/v2"
 	spotifyauth "github.com/zmb3/spotify/v2"
 )
 
@@ -26,7 +25,7 @@ func BuildDependencies() Dependencies {
 	environment := os.Getenv("ENVIRONMENT")
 	
 	client := spotifyauth.New(http.DefaultClient)
-	client.CheckRedirect()
+	// client.CheckRedirect()
 
 	switch environment {
 	case "PRODUCTION":
@@ -39,18 +38,18 @@ func BuildDependencies() Dependencies {
 	}
 }
 
-func redirectHandler(w http.ResponseWriter, r *http.Request) {
-	// use the same state string here that you used to generate the URL
-	token, err := auth.Token(r.Context(), state, r)
-	if err != nil {
-		  http.Error(w, "Couldn't get token", http.StatusNotFound)
-		  return
-	}
-	// create a client using the specified token
-	client := spotify.New(auth.Client(r.Context(), token))
+// func redirectHandler(w http.ResponseWriter, r *http.Request) {
+// 	// use the same state string here that you used to generate the URL
+// 	token, err := auth.Token(r.Context(), state, r)
+// 	if err != nil {
+// 		  http.Error(w, "Couldn't get token", http.StatusNotFound)
+// 		  return
+// 	}
+// 	// create a client using the specified token
+// 	client := spotify.New(auth.Client(r.Context(), token))
 
-	// the client can now be used to make authenticated requests
-}
+// 	// the client can now be used to make authenticated requests
+// }
 
 
 func getToken() (string, error) {
@@ -69,5 +68,5 @@ func getToken() (string, error) {
 	if err != nil {
 
 	}
-	return res.Status
+	return res.Status, nil
 }
