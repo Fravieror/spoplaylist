@@ -25,7 +25,8 @@ func NewSpotify(client *spotifyauth.Client) Iplaylist {
 	}
 }
 
-func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction, playlistName string, songs []string) (string, error) {
+func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction, 
+				playlistName string, songs []string) (string, error) {
 	playlist, err := s.getPlayList(c, txn, songs, playlistName)
 	if err != nil {
 		return "", err
@@ -72,6 +73,7 @@ func (s *Spotify) getSongs(c *gin.Context, txn *newrelic.Transaction, songs []st
 	var mu sync.Mutex
 
 	for _, song := range songs {
+		wg.Add(1)
 		go func(ctx *gin.Context, songParameter string) {
 			mu.Lock()
 			defer wg.Done()

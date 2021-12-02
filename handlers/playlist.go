@@ -26,7 +26,7 @@ func (h *Handler) PutHot100(c *gin.Context) {
 }
 
 func (h *Handler) GetHot100(c *gin.Context) {
-	txn := h.NewRelicApp.StartTransaction("put_hot_100")
+	txn := h.NewRelicApp.StartTransaction("get_hot_100")
 	date := c.Param("date")
 	songs, err := h.AdminPlaylist.GetHot100(c, txn, date)
 	if err != nil {
