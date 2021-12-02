@@ -2,7 +2,6 @@ package source_music
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/anaskhan96/soup"
@@ -20,7 +19,7 @@ func (b *Billboard) GetHot100Songs(txn *newrelic.Transaction, date string) ([]st
 	url := fmt.Sprintf("https://www.billboard.com/charts/hot-100/%s", date)
 	resp, err := soup.Get(url)
 	if err != nil {
-		log.Fatal(fmt.Errorf("error getting from url %s: detail %w", url, err))
+		fmt.Println(fmt.Errorf("error getting from url %s: detail %w", url, err))
 		return nil, fmt.Errorf("error getting top 100, check logs for more details, transaction: %s",
 			txn.GetTraceMetadata().TraceID)
 	}
