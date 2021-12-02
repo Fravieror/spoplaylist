@@ -24,3 +24,14 @@ func (h *Handler) PutHot100(c *gin.Context) {
 
 	c.JSON(http.StatusOK, fmt.Sprintf("songs added successfully to playlist #snapshot: %s", snapshotID))
 }
+
+func (h *Handler) GetHot100(c *gin.Context) {
+	txn := h.NewRelicApp.StartTransaction("put_hot_100")
+	date := c.Param("date")
+	songs, err := h.AdminPlaylist.GetHot100(c, txn, date)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
+	}
+
+	c.JSON(http.StatusOK, songs)
+}

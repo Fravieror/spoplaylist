@@ -31,6 +31,7 @@ func main() {
 	// Create routes
 	router := gin.Default()
 	router.GET("/hot-100/:date", handler.PutHot100)
+	router.PUT("/hot-100/:date", handler.PutHot100)
 
 	// Start service
 	port := os.Getenv("PORT")
