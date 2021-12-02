@@ -33,7 +33,7 @@ func main() {
 	router.GET("/hot-100/:date", handler.PutHot100)
 	router.PUT("/hot-100/:date", handler.PutHot100)
 
-	// Start service
+	// Start server
 	port := os.Getenv("PORT")
 	router.Run(fmt.Sprintf("localhost:%s", port))
 }
