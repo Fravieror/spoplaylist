@@ -11,8 +11,8 @@ import (
 
 const (
 	UserID       = ""
-	ClientID     = "83efab411227447e8a233a1d28882b97"
-	ClientSecret = "bc3171a2b95e4b889c52e2cefbb0ff62"
+	ClientID     = "83efa!!b411227447*e8a*233*a**1d28882b97"
+	ClientSecret = "bc3171a2b!!!95e4b889c52e2*c*efb*b**0ff62"
 )
 
 type Spotify struct {
@@ -30,10 +30,10 @@ func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction,
 	if err != nil {
 		return "", err
 	}
-	
-	tracks, err := s.getSongs(c, txn, songs)	
+
+	tracks, err := s.getSongs(c, txn, songs)
 	if err != nil {
-		return "", err		
+		return "", err
 	}
 	snapshotID, err := s.Client.AddTracksToPlaylist(c, playlist.ID, tracks...)
 	if err != nil {
@@ -42,7 +42,7 @@ func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction,
 	}
 
 	fmt.Printf("tracks added to playlist successfully snapshot_id: %s", snapshotID)
-		
+
 	return snapshotID, nil
 }
 
@@ -53,7 +53,7 @@ func (s *Spotify) getPlayList(c *gin.Context, txn *newrelic.Transaction, songs [
 		return nil, fmt.Errorf("error consuming API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
 	}
 	for _, playlist := range playLists.Playlists {
-		if playlist.Name == playlistName {			
+		if playlist.Name == playlistName {
 			return nil, nil
 		}
 	}
@@ -72,15 +72,15 @@ func (s *Spotify) getSongs(c *gin.Context, txn *newrelic.Transaction, songs []st
 	var mu sync.Mutex
 
 	for _, song := range songs {
-		go func(ctx *gin.Context, songParameter string){			
+		go func(ctx *gin.Context, songParameter string) {
 			mu.Lock()
-			defer wg.Done()			
+			defer wg.Done()
 			defer mu.Unlock()
 			result, err := s.Client.Search(ctx, songParameter, spotifyauth.SearchTypeTrack, spotifyauth.RequestOption(spotifyauth.Limit(1)))
 			if err != nil {
 				fmt.Errorf("error searching for song: %s, error detail:%w", songParameter, err)
 			}
-			for _, track := range result.Tracks.Tracks {				
+			for _, track := range result.Tracks.Tracks {
 				tracks = append(tracks, track.ID)
 			}
 			wg.Wait()

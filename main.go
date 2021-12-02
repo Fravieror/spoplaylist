@@ -13,26 +13,26 @@ import (
 	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
-func main() {	
-	// Monitoring 
-	application, err := newrelic.NewApplication(newrelic.ConfigAppName("spoplaylist"), 
-												newrelic.ConfigDebugLogger(os.Stdout))	
+func main() {
+	// Monitoring
+	application, err := newrelic.NewApplication(newrelic.ConfigAppName("spoplaylist"),
+		newrelic.ConfigDebugLogger(os.Stdout))
 	if err != nil {
 		fmt.Errorf("error stating new relic monitoring, details: %w", err)
 	}
 
 	// Build dependencies
 	dependencies := config.BuildDependencies()
-	handler := handlers.Handler{NewRelicApp: application, 
-						AdminPlaylist: use_cases.NewAdminPlaylist(playlist.NewSpotify(dependencies.ClientSpotify),
-																 source_music.NewBillboard(),
-																 dependencies.CacheAdminPlaylist)}
+	handler := handlers.Handler{NewRelicApp: application,
+		AdminPlaylist: use_cases.NewAdminPlaylist(playlist.NewSpotify(dependencies.ClientSpotify),
+			source_music.NewBillboard(),
+			dependencies.CacheAdminPlaylist)}
 
-	// Create routes																 
+	// Create routes
 	router := gin.Default()
-    router.GET("/hot-100/:date", handler.PutHot100)
+	router.GET("/hot-100/:date", handler.PutHot100)
 
 	// Start service
 	port := os.Getenv("PORT")
-    router.Run(fmt.Sprintf("localhost:%s", port))
+	router.Run(fmt.Sprintf("localhost:%s", port))
 }
