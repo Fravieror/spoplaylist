@@ -2,6 +2,7 @@ package playlist
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/newrelic/go-agent/v3/newrelic"
@@ -24,25 +25,67 @@ func NewSpotify(client *spotifyauth.Client) Iplaylist {
 	}
 }
 
-func (s *Spotify) SaveSongs(c *gin.Context, txn newrelic.Transaction, songs []string) error {
-	return nil
+func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction, playlistName string, songs []string) (string, error) {
+	playlist, err := s.getPlayList(c, txn, songs, playlistName)
+	if err != nil {
+		return "", err
+	}
+	
+	tracks, err := s.getSongs(c, txn, songs)	
+	if err != nil {
+		return "", err		
+	}
+	snapshotID, err := s.Client.AddTracksToPlaylist(c, playlist.ID, tracks...)
+	if err != nil {
+		fmt.Errorf("error adding tracks to playlist: %w", err)
+		return "", fmt.Errorf("error consuming API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
+	}
+
+	fmt.Printf("tracks added to playlist successfully snapshot_id: %s", snapshotID)
+		
+	return snapshotID, nil
 }
 
-func (s *Spotify) validatePlayList(c *gin.Context, txn newrelic.Transaction, songs []string) (bool, error) {
+func (s *Spotify) getPlayList(c *gin.Context, txn *newrelic.Transaction, songs []string, playlistName string) (*spotifyauth.SimplePlaylist, error) {
 	playLists, err := s.Client.GetPlaylistsForUser(c, UserID)
 	if err != nil {
 		fmt.Errorf("error getting playlist: %w", err)
-		return false, fmt.Errorf("error consuming API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
+		return nil, fmt.Errorf("error consuming API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
 	}
 	for _, playlist := range playLists.Playlists {
-		if playlist.Name == "hits of all time" {
-			return true, nil
+		if playlist.Name == playlistName {			
+			return nil, nil
 		}
 	}
-	_, err = s.Client.CreatePlaylistForUser(c, UserID, "hits of all time", "popular songs in history", false, false)
+	fullPlayLists, err := s.Client.CreatePlaylistForUser(c, UserID, playlistName, "popular songs in history", false, false)
 	if err != nil {
 		fmt.Errorf("error creating playlist: %w", err)
-		return false, fmt.Errorf("error creating playlist on API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
+		return nil, fmt.Errorf("error creating playlist on API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
 	}
-	return true, nil
+	return &fullPlayLists.SimplePlaylist, nil
+}
+
+// getSongs get song concurrently to improve time response using goroutines and avoiding race conditions
+func (s *Spotify) getSongs(c *gin.Context, txn *newrelic.Transaction, songs []string) ([]spotifyauth.ID, error) {
+	tracks := make([]spotifyauth.ID, 0)
+	var wg sync.WaitGroup
+	var mu sync.Mutex
+
+	for _, song := range songs {
+		go func(ctx *gin.Context, songParameter string){			
+			mu.Lock()
+			defer wg.Done()			
+			defer mu.Unlock()
+			result, err := s.Client.Search(ctx, songParameter, spotifyauth.SearchTypeTrack, spotifyauth.RequestOption(spotifyauth.Limit(1)))
+			if err != nil {
+				fmt.Errorf("error searching for song: %s, error detail:%w", songParameter, err)
+			}
+			for _, track := range result.Tracks.Tracks {				
+				tracks = append(tracks, track.ID)
+			}
+			wg.Wait()
+		}(c, song)
+	}
+
+	return tracks, nil
 }

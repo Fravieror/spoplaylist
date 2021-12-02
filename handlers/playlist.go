@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"spoplaylist/use_cases"
 
@@ -16,10 +17,10 @@ type Handler struct {
 func (h *Handler) PutHot100(c *gin.Context){		
 	txn := h.NewRelicApp.StartTransaction("put_hot_100")
 	date := c.Param("date")
-	err := h.AdminPlaylist.PutHot100(c, *txn, date)
+	snapshotID, err := h.AdminPlaylist.PutHot100(c, txn, date)
 	if err != nil {		
 		c.AbortWithStatusJSON(http.StatusInternalServerError, err)
 	}
 		
-	c.JSON(http.StatusOK, songs)
+	c.JSON(http.StatusOK, fmt.Sprintf("songs added successfully to playlist #snapshot: %s", snapshotID))
 }

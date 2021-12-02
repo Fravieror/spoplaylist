@@ -6,5 +6,5 @@ import (
 )
 
 type Iplaylist interface {
-	SaveSongs(c *gin.Context, txn newrelic.Transaction, songs []string) error
+	SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction, playlistName string, songs []string) (string, error)
 }
