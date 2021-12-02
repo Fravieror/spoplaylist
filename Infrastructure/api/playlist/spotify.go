@@ -9,12 +9,6 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2"
 )
 
-const (
-	UserID       = ""
-	ClientID     = "83efa!!b411227447*e8a*233*a**1d28882b97"
-	ClientSecret = "bc3171a2b!!!95e4b889c52e2*c*efb*b**0ff62"
-)
-
 type Spotify struct {
 	Client *spotifyauth.Client
 }
