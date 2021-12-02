@@ -9,6 +9,8 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2"
 )
 
+const UserID = ""
+
 type Spotify struct {
 	Client *spotifyauth.Client
 }
