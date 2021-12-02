@@ -2,6 +2,8 @@ package playlist
 
 import (
 	"fmt"
+	"net/http"
+	"os"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -9,19 +11,15 @@ import (
 	spotifyauth "github.com/zmb3/spotify/v2"
 )
 
-const (
-	UserID       = ""
-	ClientID     = "83efa!!b411227447*e8a*233*a**1d28882b97"
-	ClientSecret = "bc3171a2b!!!95e4b889c52e2*c*efb*b**0ff62"
-)
-
 type Spotify struct {
 	Client *spotifyauth.Client
+	HttpClient *http.Client
 }
 
-func NewSpotify(client *spotifyauth.Client) Iplaylist {
+func NewSpotify(client *spotifyauth.Client, httpClient *http.Client) Iplaylist {
 	return &Spotify{
 		Client: client,
+		HttpClient: httpClient,
 	}
 }
 
@@ -48,6 +46,7 @@ func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction,
 }
 
 func (s *Spotify) getPlayList(c *gin.Context, txn *newrelic.Transaction, songs []string, playlistName string) (*spotifyauth.SimplePlaylist, error) {
+	UserID := os.Getenv("USER_ID")
 	playLists, err := s.Client.GetPlaylistsForUser(c, UserID)
 	if err != nil {
 		fmt.Println(fmt.Errorf("error getting playlist: %w", err))
