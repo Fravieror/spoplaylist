@@ -37,7 +37,7 @@ func (admin *AdminPlaylist) PutHot100(c *gin.Context, txn *newrelic.Transaction,
 
 	itemCache := admin.Cache.Get(date)
 	if itemCache == nil || itemCache.Expired() {
-		songs, err = admin.SourceMusic.GetHot100Songs(date)
+		songs, err = admin.SourceMusic.GetHot100Songs(txn, date)
 		if err != nil {
 			return "", err
 		}
@@ -60,7 +60,7 @@ func (admin *AdminPlaylist) GetHot100(c *gin.Context, txn *newrelic.Transaction,
 
 	itemCache := admin.Cache.Get(date)
 	if itemCache == nil || itemCache.Expired() {
-		songs, err = admin.SourceMusic.GetHot100Songs(date)
+		songs, err = admin.SourceMusic.GetHot100Songs(txn, date)
 		if err != nil {
 			return nil, err
 		}

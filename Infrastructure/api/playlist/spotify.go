@@ -2,6 +2,7 @@ package playlist
 
 import (
 	"fmt"
+	"log"
 	"sync"
 
 	"github.com/gin-gonic/gin"
@@ -37,7 +38,7 @@ func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction,
 	}
 	snapshotID, err := s.Client.AddTracksToPlaylist(c, playlist.ID, tracks...)
 	if err != nil {
-		fmt.Errorf("error adding tracks to playlist: %w", err)
+		log.Fatal(fmt.Errorf("error adding tracks to playlist: %w", err))
 		return "", fmt.Errorf("error consuming API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
 	}
 
@@ -49,7 +50,7 @@ func (s *Spotify) SaveSongsOnPlaylist(c *gin.Context, txn *newrelic.Transaction,
 func (s *Spotify) getPlayList(c *gin.Context, txn *newrelic.Transaction, songs []string, playlistName string) (*spotifyauth.SimplePlaylist, error) {
 	playLists, err := s.Client.GetPlaylistsForUser(c, UserID)
 	if err != nil {
-		fmt.Errorf("error getting playlist: %w", err)
+		log.Fatal(fmt.Errorf("error getting playlist: %w", err))
 		return nil, fmt.Errorf("error consuming API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
 	}
 	for _, playlist := range playLists.Playlists {
@@ -59,7 +60,7 @@ func (s *Spotify) getPlayList(c *gin.Context, txn *newrelic.Transaction, songs [
 	}
 	fullPlayLists, err := s.Client.CreatePlaylistForUser(c, UserID, playlistName, "popular songs in history", false, false)
 	if err != nil {
-		fmt.Errorf("error creating playlist: %w", err)
+		log.Fatal(fmt.Errorf("error creating playlist: %w", err))
 		return nil, fmt.Errorf("error creating playlist on API spotify check logs for more details, transaction: %s", txn.GetTraceMetadata().TraceID)
 	}
 	return &fullPlayLists.SimplePlaylist, nil
@@ -78,7 +79,7 @@ func (s *Spotify) getSongs(c *gin.Context, txn *newrelic.Transaction, songs []st
 			defer mu.Unlock()
 			result, err := s.Client.Search(ctx, songParameter, spotifyauth.SearchTypeTrack, spotifyauth.RequestOption(spotifyauth.Limit(1)))
 			if err != nil {
-				fmt.Errorf("error searching for song: %s, error detail:%w", songParameter, err)
+				log.Fatal(fmt.Errorf("error searching for song: %s,  error detail:%w", songParameter, err))
 			}
 			for _, track := range result.Tracks.Tracks {
 				tracks = append(tracks, track.ID)

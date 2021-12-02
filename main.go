@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"spoplaylist/Infrastructure/api/playlist"
 	"spoplaylist/Infrastructure/api/source_music"
@@ -18,7 +19,7 @@ func main() {
 	application, err := newrelic.NewApplication(newrelic.ConfigAppName("spoplaylist"),
 		newrelic.ConfigDebugLogger(os.Stdout))
 	if err != nil {
-		fmt.Errorf("error stating new relic monitoring, details: %w", err)
+		log.Fatal(fmt.Errorf("error stating new relic monitoring, details: %w", err))
 	}
 
 	// Build dependencies
@@ -35,5 +36,5 @@ func main() {
 
 	// Start server
 	port := os.Getenv("PORT")
-	router.Run(fmt.Sprintf("localhost:%s", port))
+	_ = router.Run(fmt.Sprintf("localhost:%s", port))
 }

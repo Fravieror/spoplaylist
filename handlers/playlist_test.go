@@ -16,6 +16,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/assert/v2"
 	"github.com/karlseguin/ccache/v2"
+	"github.com/newrelic/go-agent/v3/newrelic"
 )
 
 func Test_GetHot100(t *testing.T) {
@@ -32,7 +33,7 @@ func Test_GetHot100(t *testing.T) {
 			name: "error",
 			date: "2021-01-01",
 			mockSourceMusic: source_music.MockSourceMusic{
-				MockGetHot100Songs: func(date string) ([]string, error) {
+				MockGetHot100Songs: func(txn *newrelic.Transaction, date string) ([]string, error) {
 					return nil, errors.New("error")
 				},
 			},
@@ -56,7 +57,7 @@ func Test_GetHot100(t *testing.T) {
 			name: "ok-api",
 			date: "2021-12-01",
 			mockSourceMusic: source_music.MockSourceMusic{
-				MockGetHot100Songs: func(date string) ([]string, error) {
+				MockGetHot100Songs: func(txn *newrelic.Transaction, date string) ([]string, error) {
 					return []string{"something", "something"}, nil
 				},
 			},
