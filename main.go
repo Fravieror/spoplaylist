@@ -26,13 +26,13 @@ func main() {
 	dependencies := config.BuildDependencies()
 	handler := handlers.Handler{NewRelicApp: application,
 		AdminPlaylist: use_cases.NewAdminPlaylist(playlist.NewSpotify(dependencies.ClientSpotify,
-																		&http.Client{}),
+																		&http.Client{}, dependencies.CachePlaylist),
 			source_music.NewBillboard(),
 			dependencies.CacheAdminPlaylist)}
 
 	// Create routes
 	router := gin.Default()
-	router.GET("/hot-100/:date", handler.PutHot100)
+	router.GET("/hot-100/:date", handler.GetHot100)
 	router.PUT("/hot-100/:date", handler.PutHot100)
 	router.POST("/set/spotify/creadentials", handler.SetCredential)
 

@@ -1,19 +1,21 @@
 package config
 
 import (
-	"encoding/base64"
-	"fmt"
-	"net/http"
+	"context"
+	"log"
 	"os"
-	"strings"
 
 	"github.com/karlseguin/ccache/v2"
-	spotifyauth "github.com/zmb3/spotify/v2"
+	spotify "github.com/zmb3/spotify/v2"
+	spotifyauth "github.com/zmb3/spotify/v2/auth"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/clientcredentials"
 )
 
 type Dependencies struct {
-	ClientSpotify      *spotifyauth.Client
+	ClientSpotify      *spotify.Client
 	CacheAdminPlaylist *ccache.Cache
+	CachePlaylist	   *ccache.Cache
 }
 
 const (
@@ -23,50 +25,34 @@ const (
 
 func BuildDependencies() Dependencies {
 	environment := os.Getenv("ENVIRONMENT")
-	
-	client := spotifyauth.New(http.DefaultClient)
-	// client.CheckRedirect()
 
 	switch environment {
 	case "PRODUCTION":
 		return Dependencies{}
 	default:
 		return Dependencies{
-			ClientSpotify:      client,
+			ClientSpotify:      getClient(),
 			CacheAdminPlaylist: ccache.New(ccache.Configure().MaxSize(maxSizeCache)),
+			CachePlaylist:  ccache.New(ccache.Configure().MaxSize(maxSizeCache)),
 		}
 	}
 }
 
-// func redirectHandler(w http.ResponseWriter, r *http.Request) {
-// 	// use the same state string here that you used to generate the URL
-// 	token, err := auth.Token(r.Context(), state, r)
-// 	if err != nil {
-// 		  http.Error(w, "Couldn't get token", http.StatusNotFound)
-// 		  return
-// 	}
-// 	// create a client using the specified token
-// 	client := spotify.New(auth.Client(r.Context(), token))
-
-// 	// the client can now be used to make authenticated requests
-// }
-
-
-func getToken() (string, error) {
-	cli := http.DefaultClient
-	ClientID := os.Getenv("CLIENT_ID")
-	ClientSecret := os.Getenv("CLIENT_SECRET")
-	payload := strings.NewReader("grant_type=client_credentials")
-	req, err := http.NewRequest("POST", UrlToken, payload)
-	if err != nil {
-
+func getClient() *spotify.Client {
+	ctx := context.Background()
+	config := &clientcredentials.Config{
+		ClientID:   os.Getenv("CLIENT_ID"),
+		ClientSecret: os.Getenv("CLIENT_SECRET"),
+		TokenURL:     spotifyauth.TokenURL,		
+		Scopes: []string{"playlist-modify-private"},
+		AuthStyle: oauth2.AuthStyleInParams,			
 	}
-	sEnc := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", ClientID, ClientSecret)))
-	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", sEnc))
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	res, err := cli.Do(req)
+	token, err := config.Token(ctx)
 	if err != nil {
-
+		log.Fatalf("couldn't get token: %v", err)
 	}
-	return res.Status, nil
+
+	httpClient := spotifyauth.New().Client(ctx, token)
+	return spotify.New(httpClient)
+
 }
