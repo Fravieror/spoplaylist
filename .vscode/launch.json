@@ -11,7 +11,11 @@
             "mode": "auto",
             "program": "${workspaceRoot}/main.go",
             "env": {
-                "PORT":"8080"
+                "PORT":"8080",
+                "CLIENT_ID":"83efab411227447e8a233a1d28882b97",
+                "CLIENT_SECRET":"bc3171a2b95e4b889c52e2cefbb0ff62",
+                "PLAYLIST":"I am",
+                "USER_ID":"fravier-10"
             }
         }
     ]

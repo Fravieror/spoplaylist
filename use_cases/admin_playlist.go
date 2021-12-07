@@ -1,6 +1,7 @@
 package use_cases
 
 import (
+	"os"
 	"spoplaylist/Infrastructure/api/playlist"
 	"spoplaylist/Infrastructure/api/source_music"
 	"time"
@@ -46,7 +47,8 @@ func (admin *AdminPlaylist) PutHot100(c *gin.Context, txn *newrelic.Transaction,
 		songs = itemCache.Value().([]string)
 	}
 
-	snapshotID, err := admin.Playlist.SaveSongsOnPlaylist(c, txn, "hits of all time", songs)
+	playlistName := os.Getenv("PLAYLIST")
+	snapshotID, err := admin.Playlist.SaveSongsOnPlaylist(c, txn, playlistName, songs)
 	if err != nil {
 		return "", err
 	}

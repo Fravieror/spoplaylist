@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"spoplaylist/Infrastructure/api/playlist"
 	"spoplaylist/Infrastructure/api/source_music"
@@ -24,7 +25,8 @@ func main() {
 	// Build dependencies
 	dependencies := config.BuildDependencies()
 	handler := handlers.Handler{NewRelicApp: application,
-		AdminPlaylist: use_cases.NewAdminPlaylist(playlist.NewSpotify(dependencies.ClientSpotify),
+		AdminPlaylist: use_cases.NewAdminPlaylist(playlist.NewSpotify(dependencies.ClientSpotify,
+																		&http.Client{}, dependencies.CachePlaylist),
 			source_music.NewBillboard(),
 			dependencies.CacheAdminPlaylist)}
 
@@ -32,6 +34,7 @@ func main() {
 	router := gin.Default()
 	router.GET("/hot-100/:date", handler.GetHot100)
 	router.PUT("/hot-100/:date", handler.PutHot100)
+	router.POST("/set/spotify/creadentials", handler.SetCredential)
 
 	// Start server
 	port := os.Getenv("PORT")
