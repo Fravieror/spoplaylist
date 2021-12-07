@@ -14,6 +14,7 @@ import (
 )
 
 const ttlCacheMinutes = 60
+const UserID = ""
 
 type Spotify struct {
 	Client *spotifyauth.Client
